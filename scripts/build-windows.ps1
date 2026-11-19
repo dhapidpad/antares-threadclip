@@ -98,5 +98,24 @@ echo Studio da dung.
 pause
 "@ | Out-File -Encoding utf8 "$distDir\run.bat"
 
+@"
+@echo off
+title Antares ThreadClip Studio v3.0.0
+cd /d "%~dp0"
+tasklist /fi "imagename eq tc-app.exe" | find /i "tc-app.exe" >nul
+if %ERRORLEVEL% NEQ 0 (
+    start "" "%~dp0tc-app.exe"
+    timeout /t 2 >nul
+)
+if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
+    start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --app="http://127.0.0.1:3000" --window-size=1280,820
+) else if exist "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" (
+    start "" "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --app="http://127.0.0.1:3000" --window-size=1280,820
+) else (
+    start "" "http://127.0.0.1:3000"
+)
+exit
+"@ | Out-File -Encoding utf8 "$distDir\launch-app-window.bat"
+
 Write-Host "SUCCESS! Windows Studio package assembled at: $distDir" -ForegroundColor Cyan
 Write-Host "Run '$distDir\run.bat' to launch the Studio." -ForegroundColor Cyan

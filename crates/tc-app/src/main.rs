@@ -25,9 +25,32 @@ fn find_ui_dir() -> PathBuf {
 fn open_browser(url: &str) {
     #[cfg(target_os = "windows")]
     {
-        let _ = std::process::Command::new("cmd")
-            .args(["/c", "start", url])
-            .spawn();
+        let app_arg = format!("--app={}", url);
+        let candidates = [
+            r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+            r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+            r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        ];
+
+        let mut opened_in_app_mode = false;
+        for path in &candidates {
+            if std::path::Path::new(path).exists() {
+                if std::process::Command::new(path)
+                    .args([&app_arg, "--window-size=1280,820"])
+                    .spawn()
+                    .is_ok()
+                {
+                    opened_in_app_mode = true;
+                    break;
+                }
+            }
+        }
+
+        if !opened_in_app_mode {
+            let _ = std::process::Command::new("cmd")
+                .args(["/c", "start", url])
+                .spawn();
+        }
     }
     #[cfg(target_os = "macos")]
     {

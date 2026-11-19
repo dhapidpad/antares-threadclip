@@ -63,6 +63,9 @@ jobs:
           
           $batchContent = "@echo off`r`ntitle Antares ThreadClip Studio v3.0.0`r`ncd /d `"%~dp0`"`r`necho ===============================================================`r`necho       Antares ThreadClip Studio v3.0.0 (Windows Launcher)`r`necho ===============================================================`r`necho.`r`necho Dang khoi dong may chu backend va giao dien Studio...`r`necho (Vui long KHONG dong cua so nay trong khi su dung Studio)`r`necho.`r`n`"%~dp0tc-app.exe`"`r`nif %ERRORLEVEL% NEQ 0 (`r`n    echo.`r`n    echo [LOI] Studio da dung voi ma loi %ERRORLEVEL%.`r`n)`r`necho.`r`necho Studio da dung.`r`npause"
           Set-Content -Path "$distDir\run.bat" -Value $batchContent
+          
+          $appModeBatch = "@echo off`r`ntitle Antares ThreadClip Studio v3.0.0`r`ncd /d `"%~dp0`"`r`ntasklist /fi `"imagename eq tc-app.exe`" | find /i `"tc-app.exe`" >nul`r`nif %ERRORLEVEL% NEQ 0 (`r`n    start `"`" `"%~dp0tc-app.exe`"`r`n    timeout /t 2 >nul`r`n)`r`nif exist `"C:\Program Files\Google\Chrome\Application\chrome.exe`" (`r`n    start `"`" `"C:\Program Files\Google\Chrome\Application\chrome.exe`" --app=`"http://127.0.0.1:3000`" --window-size=1280,820`r`n) else if exist `"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`" (`r`n    start `"`" `"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`" --app=`"http://127.0.0.1:3000`" --window-size=1280,820`r`n) else (`r`n    start `"`" `"http://127.0.0.1:3000`"`r`n)`r`nexit"
+          Set-Content -Path "$distDir\launch-app-window.bat" -Value $appModeBatch
 
       - name: Create ZIP Archive & Checksum
         shell: pwsh

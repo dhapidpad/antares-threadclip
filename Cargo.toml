@@ -1,0 +1,41 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/tc-core",
+    "crates/tc-threads",
+    "crates/tc-db",
+    "crates/tc-filter",
+    "crates/tc-ranking",
+    "crates/tc-timeline",
+    "crates/tc-audio",
+    "crates/tc-assets",
+    "crates/tc-render",
+    "crates/tc-app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Antares Studio Contributors"]
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+thiserror = "2.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.10", features = ["v4", "serde"] }
+sha2 = "0.10"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+tokio = { version = "1.40", features = ["full"] }
+rusqlite = { version = "0.32", features = ["bundled", "bundled-full"] }
+tc-core = { path = "crates/tc-core" }
+tc-db = { path = "crates/tc-db" }
+tc-threads = { path = "crates/tc-threads" }
+tc-filter = { path = "crates/tc-filter" }
+tc-ranking = { path = "crates/tc-ranking" }
+tc-timeline = { path = "crates/tc-timeline" }
+tc-audio = { path = "crates/tc-audio" }
+tc-assets = { path = "crates/tc-assets" }
+tc-render = { path = "crates/tc-render" }

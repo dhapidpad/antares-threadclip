@@ -1,0 +1,13 @@
+{
+  "project": "golden_sample_1",
+  "preset": "shorts-1080x1920",
+  "total_frames": 60,
+  "fps": "30/1",
+  "expected_codec_video": "h264",
+  "expected_codec_audio": "aac",
+  "milestone_frame_hashes": {
+    "frame_0": "d41d8cd98f00b204e9800998ecf8427e",
+    "frame_30": "a8f5f167f44f4964e6c998dee827110c",
+    "frame_59": "7b52009b64fd0a2a49e6d8a939753077"
+  }
+}

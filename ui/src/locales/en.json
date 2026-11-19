@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "Antares ThreadClip Studio",
+    "version": "v3.0.0"
+  },
+  "nav": {
+    "dashboard": "Projects",
+    "import": "Import Threads",
+    "content": "Content Library",
+    "assets": "Assets Library",
+    "editor": "Timeline Editor",
+    "preview": "Preview",
+    "voice": "Voice & Captions",
+    "render": "Render Queue",
+    "history": "History",
+    "settings": "Settings",
+    "logs": "System Logs"
+  },
+  "status": {
+    "ready": "Ready",
+    "local_first": "Local-First Active",
+    "token_valid": "Token Valid",
+    "saving": "Saving..."
+  }
+}

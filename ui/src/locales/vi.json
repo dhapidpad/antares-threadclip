@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "Antares ThreadClip Studio",
+    "version": "v3.0.0"
+  },
+  "nav": {
+    "dashboard": "Dự án",
+    "import": "Nhập Threads",
+    "content": "Thư viện bài viết",
+    "assets": "Tài nguyên",
+    "editor": "Dựng Video",
+    "preview": "Xem trước",
+    "voice": "Giọng & Phụ đề",
+    "render": "Hàng đợi xuất",
+    "history": "Lịch sử",
+    "settings": "Cài đặt",
+    "logs": "Nhật ký hệ thống"
+  },
+  "status": {
+    "ready": "Sẵn sàng",
+    "local_first": "Local-First Active",
+    "token_valid": "Token hợp lệ",
+    "saving": "Đang lưu..."
+  }
+}

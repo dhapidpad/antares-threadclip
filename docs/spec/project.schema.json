@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AntaresThreadClipProject",
+  "type": "object",
+  "required": ["schema_version", "canvas", "tracks", "seed"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "canvas": {
+      "type": "object",
+      "required": ["width", "height", "fps", "background"],
+      "properties": {
+        "width": { "type": "integer", "default": 1080 },
+        "height": { "type": "integer", "default": 1920 },
+        "fps": { "type": "string", "default": "30/1" },
+        "background": { "type": "string", "default": "#000000" }
+      }
+    },
+    "tracks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "clips"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "type": "string", "enum": ["video", "text", "audio", "image"] },
+          "role": { "type": "string", "enum": ["voice", "music", "sfx"] },
+          "locked": { "type": "boolean" },
+          "clips": { "type": "array" }
+        }
+      }
+    },
+    "captions": {
+      "type": "object",
+      "properties": {
+        "format": { "type": "string", "default": "srt" },
+        "cues": { "type": "array" }
+      }
+    },
+    "seed": {
+      "type": "integer"
+    }
+  }
+}

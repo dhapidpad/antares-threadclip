@@ -36,24 +36,14 @@ fn test_user_threads_post_workflow() {
     let score = AppController::score_post(&state, post_id).expect("Score must succeed");
     assert!(score.total_score > 0.0);
 
-    // Verify reply scoring - author reply receives author bonus
+    // Verify reply scoring - author reply receives author bonus in heuristic score
     let cfg = RankingConfig::default();
-    let now = chrono::Utc::now().timestamp();
     let deep_reply_text = "sợ ngta dỗi b ạ 😔🥀";
-    let rep_score = RankingEngine::score_item(
-        Some(1),
-        Some(2),
-        1731991860,
-        now,
-        deep_reply_text,
-        4,
-        true,
-        &cfg,
-    );
-    assert!(rep_score
+    let heuristic_score = RankingEngine::compute_heuristic_score(deep_reply_text, 4, true, &cfg);
+    assert!(heuristic_score
         .factors
         .iter()
-        .any(|f| f.name == "author_reply_bonus"));
+        .any(|f| f.name == "Phản hồi của tác giả"));
 
     // 5. Timeline Editor Setup: Create 9:16 Shorts Project
     let mut proj = ProjectModel::default();

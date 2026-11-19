@@ -75,7 +75,8 @@ mod tests {
         };
 
         let compiled = QueryCompiler::compile_posts(&query).unwrap();
-        let mut stmt = db.raw_conn().prepare(&compiled.sql).unwrap();
+        let conn = db.raw_conn();
+        let mut stmt = conn.prepare(&compiled.sql).unwrap();
 
         let rows = stmt
             .query_map(params_from_iter(compiled.params.iter()), |row| {

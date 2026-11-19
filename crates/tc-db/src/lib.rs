@@ -2,12 +2,13 @@ pub mod schema;
 
 use rusqlite::{params, Connection, OptionalExtension};
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard};
 use tc_core::{
     Account, AccountId, ContentKind, MediaType, Post, PostId, Reply, ReplyId, Result, Tag, TcError,
 };
 
 pub struct Database {
-    conn: Connection,
+    conn: Mutex<Connection>,
     path: PathBuf,
 }
 
@@ -30,7 +31,7 @@ impl Database {
         .map_err(|e| TcError::Db(format!("Failed to configure SQLite pragmas: {e}")))?;
 
         let db = Self {
-            conn,
+            conn: Mutex::new(conn),
             path: path_buf,
         };
         db.migrate()?;
@@ -45,16 +46,24 @@ impl Database {
             .map_err(|e| TcError::Db(format!("Failed to configure pragmas: {e}")))?;
 
         let db = Self {
-            conn,
+            conn: Mutex::new(conn),
             path: PathBuf::from(":memory:"),
         };
         db.migrate()?;
         Ok(db)
     }
 
+    fn conn(&self) -> MutexGuard<'_, Connection> {
+        self.conn.lock().unwrap()
+    }
+
+    pub fn raw_conn(&self) -> MutexGuard<'_, Connection> {
+        self.conn.lock().unwrap()
+    }
+
     pub fn migrate(&self) -> Result<()> {
-        let tx = self
-            .conn
+        let conn = self.conn();
+        let tx = conn
             .unchecked_transaction()
             .map_err(|e| TcError::Db(e.to_string()))?;
 
@@ -86,8 +95,8 @@ impl Database {
     }
 
     pub fn get_meta(&self, key: &str) -> Result<Option<String>> {
-        let mut stmt = self
-            .conn
+        let conn = self.conn();
+        let mut stmt = conn
             .prepare("SELECT value FROM meta WHERE key = ?1")
             .map_err(|e| TcError::Db(e.to_string()))?;
         let res = stmt
@@ -99,28 +108,28 @@ impl Database {
 
     // --- Account Operations ---
     pub fn upsert_account(&self, acc: &Account) -> Result<()> {
-        self.conn
-            .execute(
-                "INSERT INTO account (id, username, token_expires_at, last_import_at)
-                 VALUES (?1, ?2, ?3, ?4)
-                 ON CONFLICT(id) DO UPDATE SET
-                   username = excluded.username,
-                   token_expires_at = excluded.token_expires_at,
-                   last_import_at = excluded.last_import_at",
-                params![
-                    acc.id.as_str(),
-                    acc.username,
-                    acc.token_expires_at,
-                    acc.last_import_at
-                ],
-            )
-            .map_err(|e| TcError::Db(e.to_string()))?;
+        let conn = self.conn();
+        conn.execute(
+            "INSERT INTO account (id, username, token_expires_at, last_import_at)
+             VALUES (?1, ?2, ?3, ?4)
+             ON CONFLICT(id) DO UPDATE SET
+               username = excluded.username,
+               token_expires_at = excluded.token_expires_at,
+               last_import_at = excluded.last_import_at",
+            params![
+                acc.id.as_str(),
+                acc.username,
+                acc.token_expires_at,
+                acc.last_import_at
+            ],
+        )
+        .map_err(|e| TcError::Db(e.to_string()))?;
         Ok(())
     }
 
     pub fn get_account(&self, id: &AccountId) -> Result<Option<Account>> {
-        let mut stmt = self
-            .conn
+        let conn = self.conn();
+        let mut stmt = conn
             .prepare(
                 "SELECT id, username, token_expires_at, last_import_at FROM account WHERE id = ?1",
             )
@@ -143,48 +152,47 @@ impl Database {
     // --- Post Operations ---
     pub fn upsert_post(&self, post: &Post) -> Result<()> {
         let media_str = post.media_type.as_ref().map(|m| format!("{:?}", m));
-        self.conn
-            .execute(
-                "INSERT INTO post (id, account_id, text, author, created_at, permalink, media_type, reply_count, like_count, raw_json)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
-                 ON CONFLICT(id) DO UPDATE SET
-                   text = excluded.text,
-                   author = excluded.author,
-                   created_at = excluded.created_at,
-                   permalink = excluded.permalink,
-                   media_type = excluded.media_type,
-                   reply_count = excluded.reply_count,
-                   like_count = excluded.like_count,
-                   raw_json = excluded.raw_json",
-                params![
-                    post.id.as_str(),
-                    post.account_id.as_str(),
-                    post.text,
-                    post.author,
-                    post.created_at,
-                    post.permalink,
-                    media_str,
-                    post.reply_count,
-                    post.like_count,
-                    post.raw_json,
-                ],
-            )
-            .map_err(|e| TcError::Db(e.to_string()))?;
+        let conn = self.conn();
+        conn.execute(
+            "INSERT INTO post (id, account_id, text, author, created_at, permalink, media_type, reply_count, like_count, raw_json)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+             ON CONFLICT(id) DO UPDATE SET
+               text = excluded.text,
+               author = excluded.author,
+               created_at = excluded.created_at,
+               permalink = excluded.permalink,
+               media_type = excluded.media_type,
+               reply_count = excluded.reply_count,
+               like_count = excluded.like_count,
+               raw_json = excluded.raw_json",
+            params![
+                post.id.as_str(),
+                post.account_id.as_str(),
+                post.text,
+                post.author,
+                post.created_at,
+                post.permalink,
+                media_str,
+                post.reply_count,
+                post.like_count,
+                post.raw_json,
+            ],
+        )
+        .map_err(|e| TcError::Db(e.to_string()))?;
 
         // Update FTS
-        self.conn
-            .execute(
-                "INSERT INTO content_fts (text, content_id, content_kind) VALUES (?1, ?2, 'post')",
-                params![post.text, post.id.as_str()],
-            )
-            .map_err(|e| TcError::Db(e.to_string()))?;
+        conn.execute(
+            "INSERT INTO content_fts (text, content_id, content_kind) VALUES (?1, ?2, 'post')",
+            params![post.text, post.id.as_str()],
+        )
+        .map_err(|e| TcError::Db(e.to_string()))?;
 
         Ok(())
     }
 
     pub fn get_post(&self, id: &PostId) -> Result<Option<Post>> {
-        let mut stmt = self
-            .conn
+        let conn = self.conn();
+        let mut stmt = conn
             .prepare(
                 "SELECT id, account_id, text, author, created_at, permalink, media_type, reply_count, like_count, raw_json
                  FROM post WHERE id = ?1",
@@ -219,8 +227,8 @@ impl Database {
     }
 
     pub fn list_posts(&self, limit: usize) -> Result<Vec<Post>> {
-        let mut stmt = self
-            .conn
+        let conn = self.conn();
+        let mut stmt = conn
             .prepare(
                 "SELECT id, account_id, text, author, created_at, permalink, media_type, reply_count, like_count, raw_json
                  FROM post ORDER BY created_at DESC LIMIT ?1",
@@ -260,49 +268,48 @@ impl Database {
 
     // --- Reply Operations ---
     pub fn upsert_reply(&self, reply: &Reply) -> Result<()> {
-        self.conn
-            .execute(
-                "INSERT INTO reply (id, post_id, replied_to_id, depth, text, author, is_author_reply, created_at, reply_count, like_count, raw_json)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
-                 ON CONFLICT(id) DO UPDATE SET
-                   depth = excluded.depth,
-                   text = excluded.text,
-                   author = excluded.author,
-                   is_author_reply = excluded.is_author_reply,
-                   created_at = excluded.created_at,
-                   reply_count = excluded.reply_count,
-                   like_count = excluded.like_count,
-                   raw_json = excluded.raw_json",
-                params![
-                    reply.id.as_str(),
-                    reply.post_id.as_str(),
-                    reply.replied_to_id,
-                    reply.depth,
-                    reply.text,
-                    reply.author,
-                    if reply.is_author_reply { 1 } else { 0 },
-                    reply.created_at,
-                    reply.reply_count,
-                    reply.like_count,
-                    reply.raw_json,
-                ],
-            )
-            .map_err(|e| TcError::Db(e.to_string()))?;
+        let conn = self.conn();
+        conn.execute(
+            "INSERT INTO reply (id, post_id, replied_to_id, depth, text, author, is_author_reply, created_at, reply_count, like_count, raw_json)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+             ON CONFLICT(id) DO UPDATE SET
+               depth = excluded.depth,
+               text = excluded.text,
+               author = excluded.author,
+               is_author_reply = excluded.is_author_reply,
+               created_at = excluded.created_at,
+               reply_count = excluded.reply_count,
+               like_count = excluded.like_count,
+               raw_json = excluded.raw_json",
+            params![
+                reply.id.as_str(),
+                reply.post_id.as_str(),
+                reply.replied_to_id,
+                reply.depth,
+                reply.text,
+                reply.author,
+                if reply.is_author_reply { 1 } else { 0 },
+                reply.created_at,
+                reply.reply_count,
+                reply.like_count,
+                reply.raw_json,
+            ],
+        )
+        .map_err(|e| TcError::Db(e.to_string()))?;
 
         // Update FTS
-        self.conn
-            .execute(
-                "INSERT INTO content_fts (text, content_id, content_kind) VALUES (?1, ?2, 'reply')",
-                params![reply.text, reply.id.as_str()],
-            )
-            .map_err(|e| TcError::Db(e.to_string()))?;
+        conn.execute(
+            "INSERT INTO content_fts (text, content_id, content_kind) VALUES (?1, ?2, 'reply')",
+            params![reply.text, reply.id.as_str()],
+        )
+        .map_err(|e| TcError::Db(e.to_string()))?;
 
         Ok(())
     }
 
     pub fn get_replies_for_post(&self, post_id: &PostId) -> Result<Vec<Reply>> {
-        let mut stmt = self
-            .conn
+        let conn = self.conn();
+        let mut stmt = conn
             .prepare(
                 "SELECT id, post_id, replied_to_id, depth, text, author, is_author_reply, created_at, reply_count, like_count, raw_json
                  FROM reply WHERE post_id = ?1 ORDER BY depth ASC, created_at ASC",
@@ -341,8 +348,8 @@ impl Database {
         query: &str,
         limit: usize,
     ) -> Result<Vec<(String, ContentKind, String)>> {
-        let mut stmt = self
-            .conn
+        let conn = self.conn();
+        let mut stmt = conn
             .prepare(
                 "SELECT content_id, content_kind, snippet(content_fts, 0, '<b>', '</b>', '...', 15)
                  FROM content_fts WHERE content_fts MATCH ?1 LIMIT ?2",
@@ -372,18 +379,18 @@ impl Database {
 
     // --- Tags ---
     pub fn create_tag(&self, name: &str, color: Option<&str>) -> Result<i64> {
-        self.conn
-            .execute(
-                "INSERT INTO tag (name, color) VALUES (?1, ?2)",
-                params![name, color],
-            )
-            .map_err(|e| TcError::Db(e.to_string()))?;
-        Ok(self.conn.last_insert_rowid())
+        let conn = self.conn();
+        conn.execute(
+            "INSERT INTO tag (name, color) VALUES (?1, ?2)",
+            params![name, color],
+        )
+        .map_err(|e| TcError::Db(e.to_string()))?;
+        Ok(conn.last_insert_rowid())
     }
 
     pub fn list_tags(&self) -> Result<Vec<Tag>> {
-        let mut stmt = self
-            .conn
+        let conn = self.conn();
+        let mut stmt = conn
             .prepare("SELECT id, name, color FROM tag ORDER BY name ASC")
             .map_err(|e| TcError::Db(e.to_string()))?;
         let rows = stmt
@@ -407,17 +414,13 @@ impl Database {
             ContentKind::Post => "post",
             ContentKind::Reply => "reply",
         };
-        self.conn
-            .execute(
-                "INSERT OR IGNORE INTO content_tag (content_id, content_kind, tag_id) VALUES (?1, ?2, ?3)",
-                params![content_id, kind_str, tag_id],
-            )
-            .map_err(|e| TcError::Db(e.to_string()))?;
+        let conn = self.conn();
+        conn.execute(
+            "INSERT OR IGNORE INTO content_tag (content_id, content_kind, tag_id) VALUES (?1, ?2, ?3)",
+            params![content_id, kind_str, tag_id],
+        )
+        .map_err(|e| TcError::Db(e.to_string()))?;
         Ok(())
-    }
-
-    pub fn raw_conn(&self) -> &Connection {
-        &self.conn
     }
 }
 

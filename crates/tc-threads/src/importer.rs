@@ -21,17 +21,17 @@ pub struct Importer;
 
 impl Importer {
     pub fn import_json_file(db: &Database, path: impl AsRef<Path>) -> Result<(usize, usize)> {
-        let file = File::open(path).map_err(|e| TcError::Io(e))?;
+        let file = File::open(path).map_err(TcError::Io)?;
         let reader = BufReader::new(file);
         let data: ImportFileFormat =
-            serde_json::from_reader(reader).map_err(|e| TcError::Serialization(e))?;
+            serde_json::from_reader(reader).map_err(TcError::Serialization)?;
 
         Self::import_data(db, data)
     }
 
     pub fn import_json_str(db: &Database, json_str: &str) -> Result<(usize, usize)> {
         let data: ImportFileFormat =
-            serde_json::from_str(json_str).map_err(|e| TcError::Serialization(e))?;
+            serde_json::from_str(json_str).map_err(TcError::Serialization)?;
 
         Self::import_data(db, data)
     }

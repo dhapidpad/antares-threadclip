@@ -79,7 +79,7 @@ mod tests {
 
         let rows = stmt
             .query_map(params_from_iter(compiled.params.iter()), |row| {
-                Ok(row.get::<_, String>(0)?)
+                row.get::<_, String>(0)
             })
             .unwrap();
 

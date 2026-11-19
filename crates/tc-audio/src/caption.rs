@@ -86,7 +86,7 @@ impl CaptionGenerator {
             lines.push(curr_line);
         }
 
-        let cue_count = (lines.len() + 1) / 2;
+        let cue_count = lines.len().div_ceil(2);
         let cue_count = cue_count.max(1);
         let ms_per_cue = total_duration_ms / cue_count as u64;
 

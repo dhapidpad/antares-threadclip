@@ -40,6 +40,7 @@ pub trait TtsProvider: Send + Sync {
     fn synthesize(&self, req: &TtsRequest) -> Result<TtsResult>;
 }
 
+#[derive(Default)]
 pub struct MockTtsProvider;
 
 impl MockTtsProvider {

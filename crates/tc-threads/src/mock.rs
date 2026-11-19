@@ -1,5 +1,6 @@
 use tc_core::{Result, TcError};
 
+#[derive(Default)]
 pub struct MockThreadsClient {
     pub simulate_rate_limit: bool,
     pub simulate_token_expired: bool,

@@ -2,6 +2,7 @@ use crate::commands::TimelineCommand;
 use crate::model::ProjectModel;
 use tc_core::Result;
 
+#[derive(Default)]
 pub struct TimelineHistory {
     undo_stack: Vec<Box<dyn TimelineCommand>>,
     redo_stack: Vec<Box<dyn TimelineCommand>>,

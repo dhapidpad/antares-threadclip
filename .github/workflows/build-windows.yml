@@ -60,16 +60,8 @@ jobs:
           Copy-Item README.md $distDir\README.md
           Copy-Item LICENSE $distDir\LICENSE
           
-          @"
-@echo off
-echo ===================================================
-echo  Starting Antares ThreadClip Studio v3.0.0 (Windows)
-echo ===================================================
-cd /d "%~dp0"
-start "" "%~dp0tc-app.exe"
-echo Studio backend running. Opening Studio UI in browser...
-start "" "%~dp0ui\index.html"
-"@ | Out-File -Encoding utf8 "$distDir\run.bat"
+          $batchContent = "@echo off`r`necho ===================================================`r`necho  Starting Antares ThreadClip Studio v3.0.0 (Windows)`r`necho ===================================================`r`ncd /d `"%~dp0`"`r`nstart `"`" `"%~dp0tc-app.exe`"`r`necho Studio backend running. Opening Studio UI in browser...`r`nstart `"`" `"%~dp0ui\index.html`""
+          Set-Content -Path "$distDir\run.bat" -Value $batchContent
 
       - name: Create ZIP Archive & Checksum
         shell: pwsh

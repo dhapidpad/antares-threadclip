@@ -1,10 +1,10 @@
 use tc_app::{AppController, AppState};
-use tc_audio::{CaptionGenerator, MockTtsProvider, TtsProvider};
-use tc_core::{Frame, RationalFps, Timecode};
+use tc_audio::{CaptionGenerator, CaptionItem, MockTtsProvider, TtsProvider};
+use tc_core::Frame;
 use tc_db::Database;
 use tc_ranking::{RankingConfig, RankingEngine};
 use tc_render::{FFmpegCommandBuilder, RenderPlan, RenderPreset};
-use tc_timeline::{Clip, ClipContent, ProjectModel};
+use tc_timeline::{Clip, ContentSnapshot, ProjectModel};
 
 #[test]
 fn test_user_threads_post_workflow() {
@@ -70,27 +70,44 @@ fn test_user_threads_post_workflow() {
 
     // 5. Timeline Editor Setup: Create 9:16 Shorts Project
     let mut proj = ProjectModel::default();
-    let fps = RationalFps::fps_30();
 
     let root_clip = Clip {
         id: "clip_root".to_string(),
-        start_frame: Frame(0),
-        duration_frames: Frame(90), // 3.0s
-        content: ClipContent::Text {
-            body: tree.post.text.clone(),
+        asset_id: None,
+        content_ref: Some(ContentSnapshot {
+            kind: "post".to_string(),
+            id: tree.post.id.0.clone(),
+            text: tree.post.text.clone(),
             author: tree.post.author.clone(),
-        },
+        }),
+        tts: None,
+        start: Frame(0),
+        duration: Frame(90), // 3.0s
+        in_point: Frame(0),
+        loop_media: false,
+        style_id: None,
+        transition_in: None,
+        transition_out: None,
     };
     proj.tracks[0].clips.push(root_clip);
 
     let reply_clip = Clip {
         id: "clip_rep_deep".to_string(),
-        start_frame: Frame(90),
-        duration_frames: Frame(90), // 3.0s
-        content: ClipContent::Text {
-            body: deep_reply.text.clone(),
+        asset_id: None,
+        content_ref: Some(ContentSnapshot {
+            kind: "reply".to_string(),
+            id: deep_reply.id.0.clone(),
+            text: deep_reply.text.clone(),
             author: deep_reply.author.clone(),
-        },
+        }),
+        tts: None,
+        start: Frame(90),
+        duration: Frame(90), // 3.0s
+        in_point: Frame(0),
+        loop_media: false,
+        style_id: None,
+        transition_in: None,
+        transition_out: None,
     };
     proj.tracks[0].clips.push(reply_clip);
 
@@ -105,16 +122,18 @@ fn test_user_threads_post_workflow() {
     assert!(!audio_wav.is_empty());
 
     let captions = vec![
-        (
-            Timecode::from_frames(Frame(0), fps),
-            Timecode::from_frames(Frame(90), fps),
-            tree.post.text.clone(),
-        ),
-        (
-            Timecode::from_frames(Frame(90), fps),
-            Timecode::from_frames(Frame(180), fps),
-            deep_reply.text.clone(),
-        ),
+        CaptionItem {
+            start_ms: 0,
+            end_ms: 3000,
+            text: tree.post.text.clone(),
+            timing_estimated: false,
+        },
+        CaptionItem {
+            start_ms: 3000,
+            end_ms: 6000,
+            text: deep_reply.text.clone(),
+            timing_estimated: false,
+        },
     ];
     let srt = CaptionGenerator::to_srt(&captions);
     assert!(srt.contains("như này có nên chan không mng ??"));
@@ -125,7 +144,7 @@ fn test_user_threads_post_workflow() {
     let plan = RenderPlan::new(proj, preset);
 
     assert!(!plan.plan_hash.is_empty());
-    assert_eq!(plan.total_frames, 180);
+    assert_eq!(plan.total_frames, Frame(180));
 
     let out_file = std::path::Path::new("output_shorts.mp4");
     let ffmpeg_args = FFmpegCommandBuilder::build_args(&plan, None, None, None, out_file);

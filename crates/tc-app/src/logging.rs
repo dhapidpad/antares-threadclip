@@ -18,8 +18,8 @@ impl LogRedactor {
         }
 
         // 2. Redact emails
-        let words: Vec<&str> = out.split_whitespace().collect();
-        for w in words {
+        let words: Vec<String> = out.split_whitespace().map(|s| s.to_string()).collect();
+        for w in &words {
             let clean = w.trim_matches(|c: char| !c.is_alphanumeric() && c != '@' && c != '.');
             if clean.contains('@') && clean.contains('.') && clean.len() > 5 {
                 out = out.replace(clean, "[REDACTED_EMAIL]");

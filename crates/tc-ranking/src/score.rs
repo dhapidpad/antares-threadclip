@@ -143,6 +143,7 @@ impl RankingEngine {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn score_item(
         reply_count: Option<i64>,
         like_count: Option<i64>,

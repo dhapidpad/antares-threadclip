@@ -64,6 +64,7 @@ New-Item -ItemType Directory -Force -Path "$distDir\bin" | Out-Null
 Copy-Item "target\release\tc-app.exe" "$distDir\tc-app.exe"
 Copy-Item -Recurse -Force "ui\dist" "$distDir\ui"
 Copy-Item -Recurse -Force "assets" "$distDir\assets"
+if (Test-Path "testdata") { Copy-Item -Recurse -Force "testdata" "$distDir\testdata" }
 Copy-Item -Force "README.md" "$distDir\README.md"
 if (Test-Path "LICENSE") { Copy-Item -Force "LICENSE" "$distDir\LICENSE" }
 
@@ -78,13 +79,23 @@ if ($localFfmpeg) {
 
 @"
 @echo off
-echo ===================================================
-echo  Starting Antares ThreadClip Studio v3.0.0 (Windows)
-echo ===================================================
+title Antares ThreadClip Studio v3.0.0
 cd /d "%~dp0"
-start "" "%~dp0tc-app.exe"
-echo Studio backend running. Opening Studio UI in browser...
-start "" "%~dp0ui\index.html"
+echo ===============================================================
+echo       Antares ThreadClip Studio v3.0.0 (Windows Launcher)
+echo ===============================================================
+echo.
+echo Dang khoi dong may chu backend va giao dien Studio...
+echo (Vui long KHONG dong cua so nay trong khi su dung Studio)
+echo.
+"%~dp0tc-app.exe"
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo [LOI] Studio da dung voi ma loi %ERRORLEVEL%.
+)
+echo.
+echo Studio da dung.
+pause
 "@ | Out-File -Encoding utf8 "$distDir\run.bat"
 
 Write-Host "SUCCESS! Windows Studio package assembled at: $distDir" -ForegroundColor Cyan

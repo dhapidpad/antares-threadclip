@@ -1,9 +1,11 @@
 pub mod commands;
 pub mod logging;
+pub mod server;
 pub mod state;
 
 pub use commands::{AppController, AppInfo};
 pub use logging::LogRedactor;
+pub use server::StudioServer;
 pub use state::AppState;
 
 #[cfg(test)]

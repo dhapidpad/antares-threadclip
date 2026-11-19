@@ -57,10 +57,11 @@ jobs:
           Copy-Item target\release\tc-app.exe $distDir\tc-app.exe
           Copy-Item -Recurse ui\dist $distDir\ui
           Copy-Item -Recurse assets $distDir\assets
+          if (Test-Path testdata) { Copy-Item -Recurse testdata $distDir\testdata }
           Copy-Item README.md $distDir\README.md
           if (Test-Path LICENSE) { Copy-Item LICENSE $distDir\LICENSE }
           
-          $batchContent = "@echo off`r`necho ===================================================`r`necho  Starting Antares ThreadClip Studio v3.0.0 (Windows)`r`necho ===================================================`r`ncd /d `"%~dp0`"`r`nstart `"`" `"%~dp0tc-app.exe`"`r`necho Studio backend running. Opening Studio UI in browser...`r`nstart `"`" `"%~dp0ui\index.html`""
+          $batchContent = "@echo off`r`ntitle Antares ThreadClip Studio v3.0.0`r`ncd /d `"%~dp0`"`r`necho ===============================================================`r`necho       Antares ThreadClip Studio v3.0.0 (Windows Launcher)`r`necho ===============================================================`r`necho.`r`necho Dang khoi dong may chu backend va giao dien Studio...`r`necho (Vui long KHONG dong cua so nay trong khi su dung Studio)`r`necho.`r`n`"%~dp0tc-app.exe`"`r`nif %ERRORLEVEL% NEQ 0 (`r`n    echo.`r`n    echo [LOI] Studio da dung voi ma loi %ERRORLEVEL%.`r`n)`r`necho.`r`necho Studio da dung.`r`npause"
           Set-Content -Path "$distDir\run.bat" -Value $batchContent
 
       - name: Create ZIP Archive & Checksum

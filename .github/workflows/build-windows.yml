@@ -1,0 +1,98 @@
+name: Build Windows Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows Distribution Package (x64)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ui/package.json
+
+      - name: Install UI Dependencies & Build Web Studio
+        working-directory: ui
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Rust Backend Release Binary
+        run: cargo build --release --workspace
+
+      - name: Setup Windows FFmpeg Sidecar
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\antares-threadclip-windows-x64\bin | Out-Null
+          choco install ffmpeg --no-progress
+          $ffmpegPath = (Get-Command ffmpeg).Source
+          Copy-Item $ffmpegPath dist\antares-threadclip-windows-x64\bin\ffmpeg.exe
+          & dist\antares-threadclip-windows-x64\bin\ffmpeg.exe -version
+
+      - name: Assemble Windows Distribution Package
+        shell: pwsh
+        run: |
+          $distDir = "dist\antares-threadclip-windows-x64"
+          Copy-Item target\release\tc-app.exe $distDir\tc-app.exe
+          Copy-Item -Recurse ui\dist $distDir\ui
+          Copy-Item -Recurse assets $distDir\assets
+          Copy-Item README.md $distDir\README.md
+          Copy-Item LICENSE $distDir\LICENSE
+          
+          @"
+@echo off
+echo ===================================================
+echo  Starting Antares ThreadClip Studio v3.0.0 (Windows)
+echo ===================================================
+cd /d "%~dp0"
+start "" "%~dp0tc-app.exe"
+echo Studio backend running. Opening Studio UI in browser...
+start "" "%~dp0ui\index.html"
+"@ | Out-File -Encoding utf8 "$distDir\run.bat"
+
+      - name: Create ZIP Archive & Checksum
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist\antares-threadclip-windows-x64\* -DestinationPath antares-threadclip-windows-x64.zip -Force
+          $hash = (Get-FileHash antares-threadclip-windows-x64.zip -Algorithm SHA256).Hash
+          "$hash  antares-threadclip-windows-x64.zip" | Out-File -Encoding ascii SHA256SUMS.txt
+          Get-Content SHA256SUMS.txt
+
+      - name: Upload Windows Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: antares-threadclip-windows-x64
+          path: |
+            antares-threadclip-windows-x64.zip
+            SHA256SUMS.txt
+          retention-days: 30
+
+      - name: Create GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            antares-threadclip-windows-x64.zip
+            SHA256SUMS.txt
+          generate_release_notes: true

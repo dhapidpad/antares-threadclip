@@ -144,4 +144,40 @@ impl AppController {
         let safe = LogRedactor::redact(&raw);
         Ok(safe)
     }
+
+    pub fn filter_posts(state: &AppState, query: &tc_filter::FilterQuery) -> Result<Vec<String>> {
+        let compiled = tc_filter::QueryCompiler::compile_posts(query)?;
+        let conn = state.db.raw_conn();
+        let mut stmt = conn
+            .prepare(&compiled.sql)
+            .map_err(|e| TcError::Db(e.to_string()))?;
+
+        let rows = stmt
+            .query_map(rusqlite::params_from_iter(compiled.params.iter()), |row| {
+                row.get::<_, String>(0)
+            })
+            .map_err(|e| TcError::Db(e.to_string()))?;
+
+        let mut ids = Vec::new();
+        for r in rows {
+            ids.push(r.map_err(|e| TcError::Db(e.to_string()))?);
+        }
+        Ok(ids)
+    }
+
+    pub fn build_render_plan(
+        state: &AppState,
+        preset: tc_render::RenderPreset,
+    ) -> Result<tc_render::RenderPlan> {
+        let active = state.active_project.lock().unwrap();
+        let proj = active
+            .as_ref()
+            .ok_or_else(|| TcError::InvalidTimeline("No active project".into()))?;
+
+        Ok(tc_render::RenderPlan::new(proj.clone(), preset))
+    }
+
+    pub fn validate_license(license: &str, attribution: Option<&str>) -> Result<()> {
+        tc_assets::AssetManager::validate_license(license, attribution)
+    }
 }

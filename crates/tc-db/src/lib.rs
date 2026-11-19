@@ -3,8 +3,7 @@ pub mod schema;
 use rusqlite::{params, Connection, OptionalExtension};
 use std::path::{Path, PathBuf};
 use tc_core::{
-    Account, AccountId, Asset, AssetKind, ContentKind, MediaType, Post, PostId, ProjectId,
-    RenderJob, RenderJobStatus, Reply, ReplyId, Result, SpeakerConfig, Tag, TcError,
+    Account, AccountId, ContentKind, MediaType, Post, PostId, Reply, ReplyId, Result, Tag, TcError,
 };
 
 pub struct Database {
@@ -195,11 +194,11 @@ impl Database {
         let res = stmt
             .query_row(params![id.as_str()], |row| {
                 let media_str: Option<String> = row.get(6)?;
-                let media_type = media_str.and_then(|s| match s.as_str() {
-                    "Image" => Some(MediaType::Image),
-                    "Video" => Some(MediaType::Video),
-                    "Carousel" => Some(MediaType::Carousel),
-                    _ => Some(MediaType::TextPost),
+                let media_type = media_str.map(|s| match s.as_str() {
+                    "Image" => MediaType::Image,
+                    "Video" => MediaType::Video,
+                    "Carousel" => MediaType::Carousel,
+                    _ => MediaType::TextPost,
                 });
                 Ok(Post {
                     id: PostId::new(row.get::<_, String>(0)?),
@@ -231,11 +230,11 @@ impl Database {
         let rows = stmt
             .query_map(params![limit as i64], |row| {
                 let media_str: Option<String> = row.get(6)?;
-                let media_type = media_str.and_then(|s| match s.as_str() {
-                    "Image" => Some(MediaType::Image),
-                    "Video" => Some(MediaType::Video),
-                    "Carousel" => Some(MediaType::Carousel),
-                    _ => Some(MediaType::TextPost),
+                let media_type = media_str.map(|s| match s.as_str() {
+                    "Image" => MediaType::Image,
+                    "Video" => MediaType::Video,
+                    "Carousel" => MediaType::Carousel,
+                    _ => MediaType::TextPost,
                 });
                 Ok(Post {
                     id: PostId::new(row.get::<_, String>(0)?),

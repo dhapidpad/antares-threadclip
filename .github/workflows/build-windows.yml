@@ -46,8 +46,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path dist\antares-threadclip-windows-x64\bin | Out-Null
           choco install ffmpeg --no-progress
-          $ffmpegPath = (Get-Command ffmpeg).Source
-          Copy-Item $ffmpegPath dist\antares-threadclip-windows-x64\bin\ffmpeg.exe
+          $realExe = (Get-ChildItem -Path C:\ProgramData\chocolatey\lib\ffmpeg -Filter ffmpeg.exe -Recurse | Select-Object -First 1).FullName
+          Copy-Item $realExe dist\antares-threadclip-windows-x64\bin\ffmpeg.exe
           & dist\antares-threadclip-windows-x64\bin\ffmpeg.exe -version
 
       - name: Assemble Windows Distribution Package

@@ -50,7 +50,10 @@ fn test_user_threads_post_workflow() {
         true,
         &cfg,
     );
-    assert!(rep_score.factors.contains_key("author_reply_bonus"));
+    assert!(rep_score
+        .factors
+        .iter()
+        .any(|f| f.name == "author_reply_bonus"));
 
     // 5. Timeline Editor Setup: Create 9:16 Shorts Project
     let mut proj = ProjectModel::default();

@@ -1,5 +1,5 @@
 use tc_app::{AppController, AppState};
-use tc_audio::{CaptionGenerator, CaptionItem, MockTtsProvider, TtsProvider};
+use tc_audio::{CaptionGenerator, CaptionItem, MockTtsProvider, TtsProvider, TtsRequest};
 use tc_core::Frame;
 use tc_db::Database;
 use tc_ranking::{RankingConfig, RankingEngine};
@@ -111,15 +111,18 @@ fn test_user_threads_post_workflow() {
     };
     proj.tracks[0].clips.push(reply_clip);
 
-    let duration_tc = proj.total_duration_timecode();
-    assert_eq!(duration_tc, "00:00:06:00"); // 180 frames @ 30fps = 6.0s
+    assert_eq!(proj.total_duration(), Frame(180));
 
     // 6. Generate TTS Audio and SRT Subtitles
     let tts = MockTtsProvider::new();
-    let audio_wav = tts
-        .synthesize(&tree.post.text, "vi-VN-Standard-A", 1.0)
-        .expect("TTS synthesis should succeed");
-    assert!(!audio_wav.is_empty());
+    let req = TtsRequest {
+        text: tree.post.text.clone(),
+        voice_id: "vi-VN-Standard-A".to_string(),
+        rate: 1.0,
+        pitch: 0.0,
+    };
+    let audio_res = tts.synthesize(&req).expect("TTS synthesis should succeed");
+    assert!(!audio_res.audio_bytes.is_empty());
 
     let captions = vec![
         CaptionItem {

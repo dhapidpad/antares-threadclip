@@ -1,5 +1,7 @@
 # Rust build
 target/
+dist/
+*.zip
 **/*.rs.bk
 Cargo.lock.bak
 

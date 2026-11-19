@@ -9,12 +9,9 @@ license.workspace = true
 tc-core.workspace = true
 tc-db.workspace = true
 tc-threads.workspace = true
-tc-filter.workspace = true
 tc-ranking.workspace = true
 tc-timeline.workspace = true
 tc-audio.workspace = true
-tc-assets.workspace = true
-tc-render.workspace = true
 
 thiserror.workspace = true
 serde.workspace = true
@@ -22,7 +19,6 @@ serde_json.workspace = true
 chrono.workspace = true
 tokio.workspace = true
 tracing.workspace = true
-tracing-subscriber.workspace = true
 
 [dev-dependencies]
 tempfile = "3.12"

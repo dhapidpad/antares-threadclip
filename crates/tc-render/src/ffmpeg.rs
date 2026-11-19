@@ -141,10 +141,7 @@ impl FFmpegCommandBuilder {
     }
 
     /// Renders video via FFmpeg executable sidecar
-    pub fn execute_render(
-        ffmpeg_bin: &str,
-        args: &[String],
-    ) -> Result<()> {
+    pub fn execute_render(ffmpeg_bin: &str, args: &[String]) -> Result<()> {
         let output = std::process::Command::new(ffmpeg_bin)
             .args(args)
             .output()

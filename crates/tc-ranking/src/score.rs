@@ -95,7 +95,11 @@ impl RankingEngine {
         let kw_norm = (hits / 3.0).min(1.0);
 
         // depth bonus: depth 1 gets highest, diminishes slowly
-        let depth_bonus = if depth > 0 { (1.0 / depth as f64).min(1.0) } else { 1.0 };
+        let depth_bonus = if depth > 0 {
+            (1.0 / depth as f64).min(1.0)
+        } else {
+            1.0
+        };
 
         let author_val = if is_author_reply { 1.0 } else { 0.0 };
 

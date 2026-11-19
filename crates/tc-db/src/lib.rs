@@ -2,7 +2,7 @@ pub mod schema;
 
 use rusqlite::{params, Connection, OptionalExtension};
 use std::path::{Path, PathBuf};
-use tc-core::{
+use tc_core::{
     Account, AccountId, Asset, AssetKind, ContentKind, MediaType, Post, PostId, ProjectId,
     RenderJob, RenderJobStatus, Reply, ReplyId, Result, SpeakerConfig, Tag, TcError,
 };
@@ -82,8 +82,7 @@ impl Database {
         if self.path.to_str() == Some(":memory:") {
             return Ok(());
         }
-        std::fs::copy(&self.path, dest)
-            .map_err(|e| TcError::Db(format!("Backup failed: {e}")))?;
+        std::fs::copy(&self.path, dest).map_err(|e| TcError::Db(format!("Backup failed: {e}")))?;
         Ok(())
     }
 
@@ -123,7 +122,9 @@ impl Database {
     pub fn get_account(&self, id: &AccountId) -> Result<Option<Account>> {
         let mut stmt = self
             .conn
-            .prepare("SELECT id, username, token_expires_at, last_import_at FROM account WHERE id = ?1")
+            .prepare(
+                "SELECT id, username, token_expires_at, last_import_at FROM account WHERE id = ?1",
+            )
             .map_err(|e| TcError::Db(e.to_string()))?;
 
         let res = stmt
@@ -336,7 +337,11 @@ impl Database {
     }
 
     // --- FTS Search ---
-    pub fn search_fts(&self, query: &str, limit: usize) -> Result<Vec<(String, ContentKind, String)>> {
+    pub fn search_fts(
+        &self,
+        query: &str,
+        limit: usize,
+    ) -> Result<Vec<(String, ContentKind, String)>> {
         let mut stmt = self
             .conn
             .prepare(

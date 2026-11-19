@@ -97,9 +97,9 @@ impl QueryCompiler {
 
                 match match_op {
                     MatchOp::Contains => {
-                        let val_str = value
-                            .as_str()
-                            .ok_or_else(|| TcError::InvalidTimeline("Expected string value".into()))?;
+                        let val_str = value.as_str().ok_or_else(|| {
+                            TcError::InvalidTimeline("Expected string value".into())
+                        })?;
                         let param = format!("%{}%", val_str);
                         Ok((format!("{} LIKE ?", col), vec![Box::new(param)]))
                     }
@@ -125,11 +125,13 @@ impl QueryCompiler {
                         Ok((format!("{} <= ?", col), vec![Box::new(n)]))
                     }
                     MatchOp::Between => {
-                        let arr = value
-                            .as_array()
-                            .ok_or_else(|| TcError::InvalidTimeline("Expected array of 2 values".into()))?;
+                        let arr = value.as_array().ok_or_else(|| {
+                            TcError::InvalidTimeline("Expected array of 2 values".into())
+                        })?;
                         if arr.len() != 2 {
-                            return Err(TcError::InvalidTimeline("Between requires 2 elements".into()));
+                            return Err(TcError::InvalidTimeline(
+                                "Between requires 2 elements".into(),
+                            ));
                         }
                         let v1 = arr[0].as_i64().unwrap_or(0);
                         let v2 = arr[1].as_i64().unwrap_or(i64::MAX);
@@ -153,10 +155,7 @@ impl QueryCompiler {
                                 params.push(Box::new(s.to_string()));
                             }
                         }
-                        Ok((
-                            format!("{} IN ({})", col, placeholders.join(",")),
-                            params,
-                        ))
+                        Ok((format!("{} IN ({})", col, placeholders.join(",")), params))
                     }
                 }
             }

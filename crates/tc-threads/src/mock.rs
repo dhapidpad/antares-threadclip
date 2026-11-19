@@ -15,7 +15,9 @@ impl MockThreadsClient {
 
     pub fn fetch_user_posts(&self, _user_id: &str) -> Result<Vec<String>> {
         if self.simulate_token_expired {
-            return Err(TcError::TokenExpired("Mock token expired (HTTP 401)".to_string()));
+            return Err(TcError::TokenExpired(
+                "Mock token expired (HTTP 401)".to_string(),
+            ));
         }
         if self.simulate_rate_limit {
             return Err(TcError::RateLimited(60));

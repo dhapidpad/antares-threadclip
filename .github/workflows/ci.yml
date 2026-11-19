@@ -41,10 +41,12 @@ jobs:
           cache-dependency-path: ui/package.json
 
       - name: Install UI Dependencies
-        run: npm install --prefix ui
+        working-directory: ui
+        run: npm install
 
       - name: TypeScript typecheck
-        run: npm run typecheck --prefix ui
+        working-directory: ui
+        run: npm run typecheck
 
   test:
     needs: lint
@@ -71,9 +73,10 @@ jobs:
           node-version: 20
 
       - name: Install UI Dependencies & Test
+        working-directory: ui
         run: |
-          npm install --prefix ui
-          npm test --prefix ui
+          npm install
+          npm test
 
   e2e-render:
     needs: test

@@ -12,7 +12,10 @@ impl RationalFps {
     pub const FPS_60: Self = Self { num: 60, den: 1 };
     pub const FPS_24: Self = Self { num: 24, den: 1 };
     pub const FPS_25: Self = Self { num: 25, den: 1 };
-    pub const FPS_29_97: Self = Self { num: 30000, den: 1001 };
+    pub const FPS_29_97: Self = Self {
+        num: 30000,
+        den: 1001,
+    };
 
     pub fn new(num: u32, den: u32) -> Result<Self, String> {
         if den == 0 {
@@ -52,7 +55,9 @@ impl fmt::Display for RationalFps {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default, Serialize, Deserialize,
+)]
 #[serde(transparent)]
 pub struct Frame(pub u64);
 
@@ -128,7 +133,8 @@ impl Timecode {
 
     pub fn to_frame(&self, fps: RationalFps) -> Frame {
         let fps_nominal = (fps.as_f64()).round() as u64;
-        let total_seconds = self.hours as u64 * 3600 + self.minutes as u64 * 60 + self.seconds as u64;
+        let total_seconds =
+            self.hours as u64 * 3600 + self.minutes as u64 * 60 + self.seconds as u64;
         let total_frames = total_seconds * fps_nominal + self.frames as u64;
         Frame(total_frames)
     }

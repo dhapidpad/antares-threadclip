@@ -31,15 +31,11 @@ fn open_browser(url: &str) {
     }
     #[cfg(target_os = "macos")]
     {
-        let _ = std::process::Command::new("open")
-            .arg(url)
-            .spawn();
+        let _ = std::process::Command::new("open").arg(url).spawn();
     }
     #[cfg(target_os = "linux")]
     {
-        let _ = std::process::Command::new("xdg-open")
-            .arg(url)
-            .spawn();
+        let _ = std::process::Command::new("xdg-open").arg(url).spawn();
     }
 }
 
@@ -53,7 +49,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let state = Arc::new(AppState::in_memory());
     let info = AppController::get_info();
-    println!("[Studio] Hệ điều hành: {} | Phiên bản: {}", info.os, info.version);
+    println!(
+        "[Studio] Hệ điều hành: {} | Phiên bản: {}",
+        info.os, info.version
+    );
 
     // Pre-load sample data if available
     let sample_file = PathBuf::from("testdata/test_user_thread_Df5D.json");

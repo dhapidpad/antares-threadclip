@@ -318,7 +318,14 @@ async fn handle_static_file(
 </html>"#,
             ui_dir.display()
         );
-        send_response(socket, 200, "OK", "text/html; charset=utf-8", fallback_html.as_bytes()).await?;
+        send_response(
+            socket,
+            200,
+            "OK",
+            "text/html; charset=utf-8",
+            fallback_html.as_bytes(),
+        )
+        .await?;
     }
     Ok(())
 }
@@ -339,7 +346,9 @@ mod tests {
         let port = server.start(19500).await.unwrap();
 
         // 1. Test API /api/info
-        let mut stream = TcpStream::connect(format!("127.0.0.1:{}", port)).await.unwrap();
+        let mut stream = TcpStream::connect(format!("127.0.0.1:{}", port))
+            .await
+            .unwrap();
         stream
             .write_all(b"GET /api/info HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
             .await
@@ -352,7 +361,9 @@ mod tests {
         assert!(resp.contains("Antares ThreadClip Studio"));
 
         // 2. Test static file serving
-        let mut stream2 = TcpStream::connect(format!("127.0.0.1:{}", port)).await.unwrap();
+        let mut stream2 = TcpStream::connect(format!("127.0.0.1:{}", port))
+            .await
+            .unwrap();
         stream2
             .write_all(b"GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
             .await

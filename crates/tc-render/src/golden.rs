@@ -1,9 +1,8 @@
-use crate::plan::{RenderPlan, RenderPreset};
 use sha2::{Digest, Sha256};
 use std::fs;
 use std::path::Path;
-use tc_core::Result;
-use tc_timeline::{Clip, ContentSnapshot, Frame, ProjectModel, Track, TrackKind};
+use tc_core::{Frame, Result};
+use tc_timeline::{Clip, ContentSnapshot, ProjectModel, TrackKind};
 
 pub struct GoldenTestSuite;
 

@@ -1,5 +1,5 @@
 use crate::plan::RenderPlan;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use tc_core::{Result, TcError};
 
 pub struct FFmpegCommandBuilder;
@@ -63,14 +63,12 @@ impl FFmpegCommandBuilder {
         ));
 
         // 2. Audio inputs
-        let mut has_audio = false;
         let mut voice_tag = None;
         if let Some(vp) = voice_audio_path {
             args.push("-i".to_string());
             args.push(vp.to_string_lossy().to_string());
             voice_tag = Some(format!("{}:a", input_idx));
             input_idx += 1;
-            has_audio = true;
         }
 
         let mut music_tag = None;
@@ -78,21 +76,19 @@ impl FFmpegCommandBuilder {
             args.push("-i".to_string());
             args.push(mp.to_string_lossy().to_string());
             music_tag = Some(format!("{}:a", input_idx));
-            input_idx += 1;
-            has_audio = true;
         }
 
-        let audio_out_tag = if let (Some(v), Some(m)) = (voice_tag, music_tag) {
+        let audio_out_tag = if let (Some(v), Some(m)) = (&voice_tag, &music_tag) {
             filter_complex.push(tc_audio::DuckingFilterBuilder::build_ducking_filter(
-                &m, &v, "a_out",
+                m, v, "a_out",
             ));
             Some("a_out")
-        } else if let Some(v) = voice_tag {
+        } else if let Some(v) = &voice_tag {
             filter_complex.push(tc_audio::DuckingFilterBuilder::build_voice_only_filter(
-                &v, "a_out",
+                v, "a_out",
             ));
             Some("a_out")
-        } else if let Some(m) = music_tag {
+        } else if let Some(m) = &music_tag {
             filter_complex.push(format!(
                 "[{}]aresample=48000,loudnorm=I=-14:TP=-1:LRA=11[a_out]",
                 m

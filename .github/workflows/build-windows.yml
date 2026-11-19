@@ -58,7 +58,7 @@ jobs:
           Copy-Item -Recurse ui\dist $distDir\ui
           Copy-Item -Recurse assets $distDir\assets
           Copy-Item README.md $distDir\README.md
-          Copy-Item LICENSE $distDir\LICENSE
+          if (Test-Path LICENSE) { Copy-Item LICENSE $distDir\LICENSE }
           
           $batchContent = "@echo off`r`necho ===================================================`r`necho  Starting Antares ThreadClip Studio v3.0.0 (Windows)`r`necho ===================================================`r`ncd /d `"%~dp0`"`r`nstart `"`" `"%~dp0tc-app.exe`"`r`necho Studio backend running. Opening Studio UI in browser...`r`nstart `"`" `"%~dp0ui\index.html`""
           Set-Content -Path "$distDir\run.bat" -Value $batchContent

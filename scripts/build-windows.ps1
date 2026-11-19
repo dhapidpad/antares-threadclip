@@ -65,7 +65,7 @@ Copy-Item "target\release\tc-app.exe" "$distDir\tc-app.exe"
 Copy-Item -Recurse -Force "ui\dist" "$distDir\ui"
 Copy-Item -Recurse -Force "assets" "$distDir\assets"
 Copy-Item -Force "README.md" "$distDir\README.md"
-Copy-Item -Force "LICENSE" "$distDir\LICENSE"
+if (Test-Path "LICENSE") { Copy-Item -Force "LICENSE" "$distDir\LICENSE" }
 
 # Copy local ffmpeg if found
 $localFfmpeg = Get-Command ffmpeg -ErrorAction SilentlyContinue

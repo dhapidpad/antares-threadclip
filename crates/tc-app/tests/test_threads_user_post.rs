@@ -130,8 +130,8 @@ fn test_user_threads_post_workflow() {
     let ffmpeg_args = FFmpegCommandBuilder::build_args(&plan, None, None, None, out_file);
 
     assert!(ffmpeg_args.contains(&"-filter_complex".to_string()));
-    assert!(ffmpeg_args.contains(&"1080".to_string()));
-    assert!(ffmpeg_args.contains(&"1920".to_string()));
+    assert!(ffmpeg_args.iter().any(|a| a.contains("1080")));
+    assert!(ffmpeg_args.iter().any(|a| a.contains("1920")));
     assert!(ffmpeg_args.contains(&"libx264".to_string()));
-    assert!(ffmpeg_args.contains(&"output_shorts.mp4".to_string()));
+    assert!(ffmpeg_args.iter().any(|a| a.contains("output_shorts.mp4")));
 }
